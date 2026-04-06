@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 # ── APP ──
 app = Flask(__name__)
-CORS(app)  # Allow requests from browser
+CORS(app, origins=["*"], supports_credentials=False)  # Allow requests from browser
 
 # ── CLIENT ──
 anthropic_client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
