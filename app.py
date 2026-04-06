@@ -225,3 +225,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     log.info(f"SCAN Intelligence running on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
+
+@app.route('/app')
+def serve_app():
+    return app.send_static_file('scan-app.html')
