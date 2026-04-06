@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SCAN</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0a;--s:#111;--e:#181818;--b:#222;--bl:#2e2e2e;
+  --g:#00FF88;--gd:#00994d;--gg:rgba(0,255,136,0.1);
+  --w:#f0ede8;--wd:#666;--wf:#2a2a2a;
+  --o:#FF6B35;--gold:#C9A84C;
+}
+body{background:var(--bg);color:var(--w);font-family:'DM Mono',monospace;font-weight:300;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+.screen{display:none;flex-direction:column;min-height:100vh;padding-bottom:68px}
+.screen.on{display:flex}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(10,10,10,0.97);border-top:1px solid var(--b);display:none;z-index:99;height:62px}
+.nav.on{display:flex}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:8px 0;position:relative}
+.ni{font-size:17px;color:var(--wd);transition:color .2s}
+.nl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--wd);font-family:'DM Mono',monospace;transition:color .2s}
+.nt.on .ni,.nt.on .nl{color:var(--g)}
+.badge{position:absolute;top:8px;right:calc(50% - 20px);width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g)}
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);position:relative;overflow:hidden}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,136,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.03) 1px,transparent 1px);background-size:40px 40px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:96px;letter-spacing:20px;line-height:1;margin-bottom:4px;animation:up .7s both}
+.tagline{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:var(--g);margin-bottom:64px;animation:up .7s .1s both}
+.splbtn{width:180px;height:180px;border-radius:50%;border:1px solid var(--gd);background:var(--gg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-bottom:48px;animation:up .7s .2s both;transition:all .3s}
+.splbtn:active{transform:scale(.95)}
+.si{font-size:44px;line-height:1}
+.sl{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--g)}
+.hint{font-size:11px;color:var(--wd);cursor:pointer;text-decoration:underline;text-underline-offset:3px;animation:up .7s .3s both}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.hdr{padding:20px 20px 0;border-bottom:1px solid var(--b);position:sticky;top:0;background:var(--bg);z-index:10}
+.htitle{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:6px;margin-bottom:16px}
+.htitle span{color:var(--g)}
+.inp-wrap{position:relative}
+.inp{width:100%;background:var(--s);border:1px solid var(--bl);border-bottom:none;color:var(--w);padding:14px 52px 14px 14px;font-family:'DM Mono',monospace;font-size:13px;outline:none}
+.inp::placeholder{color:var(--wd);font-style:italic}
+.go{position:absolute;right:0;top:0;bottom:0;width:50px;background:var(--g);border:none;cursor:pointer;font-size:18px;color:#000;display:flex;align-items:center;justify-content:center}
+.go:disabled{background:var(--b);color:var(--wd)}
+.chips{display:flex;gap:8px;padding:10px 0;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:5px 12px;background:var(--e);border:1px solid var(--bl);font-size:10px;letter-spacing:1px;color:var(--wd);cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap;transition:all .2s}
+.chip:active,.chip.on{border-color:var(--gd);color:var(--g);background:var(--gg)}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:12px;text-align:center;padding:40px}
+.ei{font-size:36px;opacity:.15}.et{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;color:var(--wd)}.es{font-size:11px;color:var(--wd);letter-spacing:1px;line-height:1.7}
+.pad{padding:0 20px 20px}
+.loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px;min-height:200px;justify-content:center}
+.dots{display:flex;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--g);animation:bounce 1s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-8px);opacity:1}}
+.lstatus{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--g)}
+.lquery{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:var(--wd);text-align:center}
+.rmeta{padding:12px 0;display:flex;justify-content:space-between;border-bottom:1px solid var(--b);margin-bottom:12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--wd)}
+.rmeta span{color:var(--g)}
+.ibar{margin:0 0 8px;padding:12px 14px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);display:flex;gap:10px}
+.idot{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;margin-top:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.itext{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:var(--w);line-height:1.5}
+.gap{margin:0 0 8px;padding:12px 14px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.3);display:flex;gap:10px}
+.gtext{font-size:12px;color:var(--gold);line-height:1.5}
+.rc{background:var(--s);border:1px solid var(--b);margin-bottom:8px;overflow:hidden}
+.rtop{display:flex}
+.remoji{width:80px;height:80px;background:var(--e);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.rbody{flex:1;padding:10px 12px;min-width:0}
+.rthread{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--gd);margin-bottom:4px}
+.rname{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--w);line-height:1.2;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:10px;color:var(--wd);margin-bottom:6px}
+.rfoot{display:flex;align-items:center;justify-content:space-between}
+.rprice{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--w)}
+.vb{font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border:1px solid}
+.vb.BUY,.vb.buy{color:var(--g);border-color:var(--g);background:rgba(0,255,136,.08)}
+.vb.NEGOTIATE,.vb.negotiate{color:var(--o);border-color:var(--o);background:rgba(255,107,53,.08)}
+.vb.WALK,.vb.walk{color:#c0392b;border-color:#8b1a1a;background:rgba(139,26,26,.08)}
+.vb.search{color:var(--gd);border-color:var(--gd)}
+.rbot{padding:8px 12px;border-top:1px solid var(--b);display:flex;align-items:center;gap:8px}
+.rintel{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--wd);line-height:1.5;flex:1}
+.rbuy{flex-shrink:0;padding:6px 10px;background:var(--g);border:none;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#000;cursor:pointer;font-family:'DM Mono',monospace}
+.upload{margin:20px;padding:40px 20px;border:1px dashed var(--bl);display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;background:var(--s);transition:all .2s;position:relative}
+.upload:active{border-color:var(--gd);background:var(--gg)}
+.uicon{font-size:36px;opacity:.3}.ulabel{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--g)}.uhint{font-size:11px;color:var(--wd)}
+.pbtn{width:100%;padding:16px;background:var(--g);border:none;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#000;cursor:pointer;font-family:'DM Mono',monospace;margin-bottom:8px}
+.pbtn:disabled{background:var(--b);color:var(--wd)}
+.sbtn2{width:100%;padding:14px;background:transparent;border:1px solid var(--gd);font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--g);cursor:pointer;font-family:'DM Mono',monospace;margin-bottom:24px}
+.scan-img{width:100%;max-height:220px;object-fit:contain;background:var(--e);border:1px solid var(--b);display:block;margin-bottom:4px}
+.idblock{background:var(--s);border:1px solid var(--b);border-bottom:none;padding:16px 20px}
+.idlabel{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--wd);margin-bottom:6px}
+.idname{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);line-height:1.1;margin-bottom:4px}
+.idsub{font-size:11px;color:var(--wd)}
+.vblock{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border:1px solid}
+.vblock.BUY{background:rgba(0,255,136,.06);border-color:var(--g)}
+.vblock.NEGOTIATE{background:rgba(255,107,53,.06);border-color:var(--o)}
+.vblock.WALK{background:rgba(139,26,26,.06);border-color:#8b1a1a}
+.vword{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;line-height:1}
+.vblock.BUY .vword{color:var(--g)}.vblock.NEGOTIATE .vword{color:var(--o)}.vblock.WALK .vword{color:#c0392b}
+.vreason{font-size:11px;color:#888;margin-top:2px;max-width:200px;line-height:1.4}
+.olabel{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--wd);margin-bottom:4px}
+.oamt{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--w)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--b);border:1px solid var(--b);margin-bottom:4px}
+.mcell{background:var(--s);padding:12px 14px}
+.mlabel{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--wd);margin-bottom:4px}
+.mval{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--w)}.mval.hi{color:var(--g)}
+.inblock{border:1px solid var(--b);background:var(--s);margin-bottom:4px}
+.inhdr{padding:10px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px}
+.intitle{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--g)}
+.inbody{padding:14px;font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--w);line-height:1.7}
+.ladder{border:1px solid var(--b);background:var(--s);margin-bottom:4px}
+.lhdr{padding:10px 14px;border-bottom:1px solid var(--b);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--wd)}
+.lrow{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--b)}
+.lrow.cur{background:rgba(0,255,136,.04)}.lrow:last-child{border-bottom:none}
+.lgrade{font-size:11px;color:var(--wd);min-width:55px}
+.lbar{flex:1;margin:0 10px;height:2px;background:var(--b)}
+.lfill{height:100%;background:var(--gd)}.lrow.cur .lfill{background:var(--g)}
+.lval{font-family:'DM Mono',monospace;font-size:11px;color:var(--w);min-width:60px;text-align:right}
+.lrow.cur .lval{color:var(--g)}
+.flipblock{border:1px solid var(--b);background:var(--s);margin-bottom:16px}
+.fliphdr{padding:10px 14px;border-bottom:1px solid var(--b);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--wd)}
+.fliprow{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--b);font-size:12px}
+.fliprow:last-child{border-bottom:none}
+.fliplabel{color:var(--wd)}.flipval{font-family:'DM Mono',monospace;color:var(--w)}.flipval.pos{color:var(--g)}
+.hcard{display:flex;background:var(--s);border:1px solid var(--b);margin-bottom:8px;cursor:pointer;overflow:hidden}
+.hthumb{width:64px;height:64px;background:var(--e);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.hbody{flex:1;padding:8px 12px;min-width:0}
+.hname{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--w);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hsub{font-size:10px;color:var(--wd);margin-bottom:5px}
+.hfoot{display:flex;align-items:center;justify-content:space-between}
+.hdate{font-size:9px;letter-spacing:1px;color:var(--wf)}
+.dgrp{padding:12px 0 4px;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--wf)}
+.acard{background:var(--s);border:1px solid var(--b);margin-bottom:8px;overflow:hidden}
+.acard.trig{border-color:var(--g);background:var(--gg)}
+.atop{padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.abody{flex:1}
+.aquery{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--w);line-height:1.4;margin-bottom:4px}
+.astatus{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--wd)}
+.acard.trig .astatus{color:var(--g)}
+.adel{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid var(--b);background:none;cursor:pointer;color:var(--wd);font-size:14px}
+.abot{padding:8px 14px;border-top:1px solid var(--b);font-size:11px;color:var(--wd);line-height:1.5}
+.acard.trig .abot{color:var(--g)}
+.aex{padding:16px 0}
+.aextitle{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--wf);margin-bottom:10px}
+.achip{display:inline-block;margin:0 6px 6px 0;padding:5px 10px;background:var(--e);border:1px solid var(--bl);font-size:10px;letter-spacing:1px;color:var(--wd);cursor:pointer;font-family:'DM Mono',monospace}
+.pcard{background:var(--s);border:1px solid var(--b);margin-bottom:8px;overflow:hidden}
+.phdr{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.pav{width:32px;height:32px;border-radius:50%;background:var(--e);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.pmeta{flex:1}.puser{font-size:11px;color:var(--w);letter-spacing:1px}.ptime{font-size:9px;color:var(--wd);margin-top:1px}
+.pbadge{font-size:8px;letter-spacing:3px;text-transform:uppercase;padding:3px 8px;border:1px solid var(--gd);color:var(--gd)}
+.pitem{padding:0 14px 12px;display:flex;gap:10px;align-items:center}
+.pemoji{font-size:26px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--e);border:1px solid var(--b);flex-shrink:0}
+.pinfo{flex:1}.pname{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--w);line-height:1.2;margin-bottom:2px}.psub{font-size:10px;color:var(--wd)}
+.pprice{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--w)}
+.pvrow{padding:8px 14px;border-top:1px solid var(--b);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px}
+.pvtext{font-size:11px;color:var(--wd);flex:1;line-height:1.4}
+.pintel{padding:10px 14px;font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:var(--wd);line-height:1.6;border-bottom:1px solid var(--b)}
+.pacts{padding:10px 14px;display:flex;gap:16px;align-items:center}
+.pact{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:1px;color:var(--wd);cursor:pointer;background:none;border:none;font-family:'DM Mono',monospace;transition:color .2s;padding:0}
+.pact.liked{color:var(--g)}
+.err{margin:12px 20px;padding:12px 14px;background:rgba(255,107,53,.08);border:1px solid var(--o);font-size:12px;color:var(--o);line-height:1.5}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--b)}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="grid"></div>
+  <div style="position:relative;z-index:1;text-align:center;padding:40px;">
+    <div class="logo">SCAN</div>
+    <div class="tagline">Point. Know. Decide.</div>
+    <div class="splbtn" onclick="goMain('scan')">
+      <div class="si">◎</div>
+      <div class="sl">Tap to Scan</div>
+    </div>
+    <div class="hint" onclick="goMain('search')">or search — Jordan 1992 under $500 →</div>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div id="sc-scan" class="screen">
+  <div style="padding:24px 20px 0;">
+    <div class="htitle">SCAN <span>Intelligence</span></div>
+    <div style="font-size:10px;letter-spacing:2px;color:var(--wd);margin-bottom:20px;">Upload any card, badge, negative, or memorabilia</div>
+  </div>
+  <div id="scanUpload" class="upload" onclick="document.getElementById('fileIn').click()">
+    <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="previewFile(event)">
+    <div class="uicon">⬆</div>
+    <div class="ulabel">Upload Photo</div>
+    <div class="uhint">Tap to choose from camera roll</div>
+  </div>
+  <div id="scanPreview" style="display:none;padding:0 20px;">
+    <img id="previewImg" style="width:100%;max-height:220px;object-fit:contain;background:var(--e);border:1px solid var(--b);display:block;margin-bottom:16px;">
+    <button class="pbtn" id="scanBtn" onclick="doScan()">Scan with Intelligence →</button>
+    <button class="sbtn2" onclick="clearScan()">Clear</button>
+  </div>
+  <div id="scanLoading" style="display:none;" class="loading">
+    <div style="width:60px;height:60px;border-radius:50%;border:1px solid var(--g);display:flex;align-items:center;justify-content:center;font-size:24px;">◎</div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="lstatus">Scanning</div>
+    <div style="font-size:10px;color:var(--wf);letter-spacing:2px;text-transform:uppercase;">Identifying · Pricing · Building verdict</div>
+  </div>
+  <div id="scanResult" style="display:none;padding:0 20px 24px;overflow-y:auto;"></div>
+</div>
+
+<!-- SEARCH -->
+<div id="sc-search" class="screen">
+  <div class="hdr">
+    <div class="htitle">SCAN <span>Search</span></div>
+    <div class="inp-wrap">
+      <input class="inp" id="searchInp" placeholder="Jordan 1992 card under $500…" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="go" id="searchGo" onclick="doSearch()">→</button>
+    </div>
+    <div class="chips">
+      <div class="chip" onclick="qs('Jordan 1992 under $500')">Jordan under $500</div>
+      <div class="chip" onclick="qs('Masters badge with ribbon under $300')">Masters badge</div>
+      <div class="chip" onclick="qs('Kobe rookie under $1000')">Kobe rookie</div>
+      <div class="chip" onclick="qs('Ali signed photo under $400')">Ali signed</div>
+      <div class="chip" onclick="qs('Jordan original negative under $50')">Jordan negatives</div>
+      <div class="chip" onclick="qs('Gretzky 1979 rookie raw')">Gretzky rookie</div>
+    </div>
+  </div>
+  <div id="searchEmpty" class="empty">
+    <div class="ei">◈</div><div class="et">Hunt Mode</div>
+    <div class="es">Type anything natural.<br>"Jordan 1992 under $500"<br>"Masters badge with ribbon"<br><br>Intelligence finds the deals.</div>
+  </div>
+  <div id="searchLoading" style="display:none;" class="loading">
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="lstatus">Searching</div>
+    <div class="lquery" id="searchQuery"></div>
+  </div>
+  <div id="searchResults" style="display:none;" class="pad"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="sc-history" class="screen">
+  <div class="hdr" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;">
+    <div class="htitle" style="margin-bottom:0;">SCAN <span>History</span></div>
+    <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--wd);cursor:pointer;" onclick="clearHistory()">Clear</div>
+  </div>
+  <div id="histContent" class="pad" style="padding-top:12px;"></div>
+</div>
+
+<!-- ALERTS -->
+<div id="sc-alerts" class="screen">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="htitle" style="margin-bottom:0;">SCAN <span>Alerts</span></div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--wd);">Price Watch</div>
+    </div>
+    <div class="inp-wrap" style="margin-bottom:16px;">
+      <input class="inp" style="border-bottom:1px solid var(--bl);" id="alertInp" placeholder="Tell me when Jordan PSA 9 drops under $1,500…" onkeydown="if(event.key==='Enter')addAlert()">
+      <button class="go" style="background:var(--gold);" onclick="addAlert()">+</button>
+    </div>
+  </div>
+  <div class="pad" style="padding-top:0;">
+    <div class="aex">
+      <div class="aextitle">Quick ideas</div>
+      <span class="achip" onclick="setAI('Jordan 1986 Fleer PSA 9 under $1,500')">Jordan PSA 9 &lt;$1,500</span>
+      <span class="achip" onclick="setAI('Masters badge 1970s ribbon under $400')">Masters badge &lt;$400</span>
+      <span class="achip" onclick="setAI('Kobe rookie PSA 8 under $800')">Kobe rookie &lt;$800</span>
+      <span class="achip" onclick="setAI('Jordan original negative under $50')">Jordan negative &lt;$50</span>
+    </div>
+    <div id="alertsList"></div>
+  </div>
+</div>
+
+<!-- COMMUNITY -->
+<div id="sc-community" class="screen">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="htitle" style="margin-bottom:0;">SCAN <span>Community</span></div>
+    </div>
+    <div class="chips" id="commChips">
+      <div class="chip on" onclick="fc('all',this)">All</div>
+      <div class="chip" onclick="fc('Jordan',this)">Jordan</div>
+      <div class="chip" onclick="fc('Masters',this)">Masters</div>
+      <div class="chip" onclick="fc('Negatives',this)">Negatives</div>
+      <div class="chip" onclick="fc('Deals',this)">Deals</div>
+    </div>
+  </div>
+  <div id="commContent" class="pad" style="padding-top:12px;"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <button class="nt" data-tab="scan" onclick="goTab('scan')"><div class="ni">◎</div><div class="nl">Scan</div></button>
+  <button class="nt" data-tab="search" onclick="goTab('search')"><div class="ni">◈</div><div class="nl">Search</div></button>
+  <button class="nt" data-tab="history" onclick="goTab('history')"><div class="ni">◷</div><div class="nl">History</div></button>
+  <button class="nt" data-tab="alerts" onclick="goTab('alerts')"><div class="ni">◉</div><div class="nl">Alerts</div><div class="badge"></div></button>
+  <button class="nt" data-tab="community" onclick="goTab('community')"><div class="ni">◫</div><div class="nl">Community</div></button>
+</nav>
+
+<script>
+// ── CONFIG — change this to your Render URL once deployed ──
+const API = 'https://scan-intelligence.onrender.com';
+
+// ── STATE ──
+let currentTab = 'scan';
+let imageB64 = null;
+let imageType = 'image/jpeg';
+let alerts = [
+  {id:1,q:'Jordan 1986 Fleer PSA 9 drops under $1,500',trig:false,detail:'Watching eBay, Goldin, PWCC. Current lowest: $1,840.'},
+  {id:2,q:'Masters badge 1975 with ribbon under $400',trig:true,detail:'Match found — 1975 Augusta badge with ribbon at $340 on eBay. 14 hours remaining.'},
+];
+let history = [
+  {id:1,type:'scan',name:'1986 Fleer Michael Jordan',sub:'Rookie · Raw · Est. PSA 7',emoji:'🏀',verdict:'buy',date:'Today'},
+  {id:2,type:'search',name:'Masters badge with ribbon under $300',sub:'Search · 5 results',emoji:'⛳',verdict:'search',date:'Today'},
+];
+let community = [
+  {id:1,user:'@archivehunter',av:'📸',time:'22 min ago',thread:'Negatives',emoji:'📷',name:'Jordan 1991 Finals Original Negative',sub:'35mm B&W · Wire service stamp',price:'$28',verdict:'buy',vt:"$28 for a Finals negative. Market hasn't priced this.",intel:'Wire service stamp means direct press archive origin. A PSA Type 1 from this game trades $3,000+. This is the primary source.',likes:34,comments:11,liked:false},
+  {id:2,user:'@cardflip_nate',av:'🧢',time:'1h ago',thread:'Jordan',emoji:'🏀',name:'1992 Topps Jordan Gold Parallel',sub:'Raw · Ungraded',price:'$195',verdict:'buy',vt:'Gold parallels undervalued. Last comp $280.',intel:'The 1992 Topps Gold run was limited. Raw copies in good shape grade PSA 8–9. At $195 this is 30% below raw market.',likes:12,comments:3,liked:false},
+  {id:3,user:'@mastersmark',av:'⛳',time:'2h ago',thread:'Masters',emoji:'⛳',name:'1978 Augusta National Badge',sub:'Original ribbon intact · VG',price:'$340',verdict:'negotiate',vt:'Good piece, ribbon intact. Offer $280.',intel:'Pre-1980 Masters badges with intact ribbons are the scarcest Augusta category.',likes:8,comments:2,liked:false},
+  {id:4,user:'@negativetheory',av:'🎞',time:'3h ago',thread:'Negatives',emoji:'🎞',name:'Magic Johnson HIV Press Conference',sub:'1991 · 35mm B&W Strip',price:'$45',verdict:'buy',vt:'Primary document from one of the most significant press conferences in sports history.',intel:'November 7, 1991. Original negatives trade at $45 because the market prices format not significance.',likes:41,comments:14,liked:false},
+  {id:5,user:'@flipkingdom',av:'💰',time:'4h ago',thread:'Jordan',emoji:'🏀',name:'1986 Fleer Jordan Sticker',sub:'Raw · Appears VG-EX',price:'$45',verdict:'buy',vt:'PSA 8 sticker at $400. This is a $45 flip.',intel:'The 1986 Fleer Jordan sticker is systematically undervalued. PSA population thin at high grades.',likes:19,comments:7,liked:false},
+];
+let commFilter = 'all';
+
+// ── NAV ──
+function goMain(tab) {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('nav').classList.add('on');
+  goTab(tab);
+}
+
+function goTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(b => b.classList.remove('on'));
+  document.getElementById('sc-' + tab).classList.add('on');
+  document.querySelector('.nt[data-tab="' + tab + '"]').classList.add('on');
+  if (tab === 'history') renderHistory();
+  if (tab === 'alerts') renderAlerts();
+  if (tab === 'community') renderCommunity();
+}
+
+// ── SCAN ──
+function previewFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  imageType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('previewImg').src = ev.target.result;
+    imageB64 = ev.target.result.split(',')[1];
+    document.getElementById('scanUpload').style.display = 'none';
+    document.getElementById('scanPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+async function doScan() {
+  if (!imageB64) return;
+  document.getElementById('scanPreview').style.display = 'none';
+  document.getElementById('scanLoading').style.display = 'flex';
+  try {
+    const r = await fetch(API + '/scan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({image: imageB64, media_type: imageType})
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    history.unshift({id:Date.now(),type:'scan',name:data.name||'Scanned item',sub:data.sub||'',emoji:'🏀',verdict:(data.verdict||'buy').toLowerCase(),date:'Today'});
+    renderScanResult(data);
+  } catch(err) {
+    document.getElementById('scanLoading').style.display = 'none';
+    document.getElementById('scanResult').style.display = 'block';
+    document.getElementById('scanResult').innerHTML = '<div class="err">Error: ' + err.message + '<br><br>Make sure scan-intelligence is deployed on Render.</div><button class="sbtn2" style="margin:0 0 0 0;" onclick="clearScan()">Try Again</button>';
+  }
+}
+
+function renderScanResult(d) {
+  document.getElementById('scanLoading').style.display = 'none';
+  const el = document.getElementById('scanResult');
+  el.style.display = 'block';
+  const v = (d.verdict || 'BUY').toUpperCase();
+  const maxLadder = d.gradeLadder ? Math.max(...d.gradeLadder.map(g => parseDollar(g.value))) : 1;
+
+  el.innerHTML =
+    '<img src="' + document.getElementById('previewImg').src + '" class="scan-img">' +
+    '<div class="idblock"><div class="idlabel">Identified</div><div class="idname">' + esc(d.name||'Unknown') + '</div><div class="idsub">' + esc(d.sub||'') + '</div></div>' +
+    '<div class="vblock ' + v + '" style="margin-bottom:4px;"><div><div class="vword">' + v + '</div><div class="vreason">' + esc(d.verdictReason||'') + '</div></div><div style="text-align:right;"><div class="olabel">Offer</div><div class="oamt">' + esc(d.offerPrice||'—') + '</div></div></div>' +
+    (d.marketData ? '<div class="mgrid">' + d.marketData.map(m => '<div class="mcell"><div class="mlabel">' + esc(m.label) + '</div><div class="mval' + (m.highlight?' hi':'') + '">' + esc(m.value) + '</div></div>').join('') + '</div>' : '') +
+    (d.intelligence ? '<div class="inblock"><div class="inhdr"><div class="idot"></div><div class="intitle">Intelligence</div></div><div class="inbody">' + esc(d.intelligence) + '</div></div>' : '') +
+    (d.gradeLadder ? '<div class="ladder"><div class="lhdr">PSA Grade Ladder</div>' + d.gradeLadder.map(g => '<div class="lrow' + (g.isCurrent?' cur':'') + '"><div class="lgrade">' + g.grade + '</div><div class="lbar"><div class="lfill" style="width:' + Math.max(4,parseDollar(g.value)/maxLadder*100) + '%"></div></div><div class="lval">' + g.value + (g.isCurrent?'<span style="font-size:8px;color:var(--g);margin-left:4px;">est</span>':'') + '</div></div>').join('') + '</div>' : '') +
+    (d.flipCalc ? '<div class="flipblock"><div class="fliphdr">Flip Calculator</div>' + [['Card cost',d.flipCalc.cardCost,''],['Grading (PSA)',d.flipCalc.gradingCost,''],['Total in',d.flipCalc.totalIn,''],['Expected grade',d.flipCalc.expectedGrade,''],['Expected return',d.flipCalc.expectedReturn,'pos'],['Net profit',d.flipCalc.netProfit+' ('+d.flipCalc.roi+')','pos']].map(([l,v,c]) => '<div class="fliprow"><span class="fliplabel">'+l+'</span><span class="flipval '+c+'">'+v+'</span></div>').join('') + '</div>' : '') +
+    (d.gapAlert ? '<div class="gap" style="margin-bottom:16px;"><div style="font-size:14px;flex-shrink:0;">◈</div><div class="gtext">' + esc(d.gapAlert) + '</div></div>' : '') +
+    '<button class="pbtn" id="logBtn" onclick="logItem(this)">Buy + Log to Collection</button>' +
+    '<button class="sbtn2" onclick="clearScan()">Scan Another</button>';
+}
+
+function clearScan() {
+  imageB64 = null;
+  document.getElementById('scanUpload').style.display = 'flex';
+  document.getElementById('scanPreview').style.display = 'none';
+  document.getElementById('scanLoading').style.display = 'none';
+  document.getElementById('scanResult').style.display = 'none';
+  document.getElementById('fileIn').value = '';
+}
+
+function logItem(btn) {
+  btn.textContent = '✓ Logged to Collection';
+  btn.style.background = '#00994d';
+  setTimeout(() => { btn.textContent = 'Buy + Log to Collection'; btn.style.background = ''; }, 2500);
+}
+
+// ── SEARCH ──
+function qs(q) { document.getElementById('searchInp').value = q; doSearch(); }
+
+async function doSearch() {
+  const q = document.getElementById('searchInp').value.trim();
+  if (!q) return;
+  document.getElementById('searchEmpty').style.display = 'none';
+  document.getElementById('searchResults').style.display = 'none';
+  document.getElementById('searchLoading').style.display = 'flex';
+  document.getElementById('searchQuery').textContent = '"' + q + '"';
+  document.getElementById('searchGo').disabled = true;
+
+  try {
+    const r = await fetch(API + '/search', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query: q})
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    history.unshift({id:Date.now(),type:'search',name:q,sub:'Search · ' + (data.results||[]).length + ' results',emoji:'◈',verdict:'search',date:'Today'});
+    renderSearchResults(data, q);
+  } catch(err) {
+    document.getElementById('searchLoading').style.display = 'none';
+    document.getElementById('searchResults').style.display = 'block';
+    document.getElementById('searchResults').innerHTML = '<div class="err">Error: ' + err.message + '<br><br>Make sure scan-intelligence is deployed on Render.</div>';
+  }
+  document.getElementById('searchGo').disabled = false;
+}
+
+function renderSearchResults(data, q) {
+  document.getElementById('searchLoading').style.display = 'none';
+  const el = document.getElementById('searchResults');
+  el.style.display = 'block';
+  let html = '<div class="rmeta"><span>' + (data.results||[]).length + '</span> results · ' + esc(q) + '</div>';
+  if (data.intelligenceSummary) html += '<div class="ibar"><div class="idot"></div><div class="itext">' + esc(data.intelligenceSummary) + '</div></div>';
+  if (data.gapInsight) html += '<div class="gap"><div style="font-size:14px;flex-shrink:0;">◈</div><div class="gtext">' + esc(data.gapInsight) + '</div></div>';
+  (data.results||[]).forEach(r => {
+    html += '<div class="rc"><div class="rtop"><div class="remoji">' + (r.emoji||'🃏') + '</div><div class="rbody"><div class="rthread">' + esc(r.thread||'') + '</div><div class="rname">' + esc(r.name) + '</div><div class="rsub">' + esc(r.sub||'') + ' · ' + esc(r.platform||'') + '</div><div class="rfoot"><div class="rprice">' + esc(r.price) + '</div><div class="vb ' + (r.verdict||'').toUpperCase() + '">' + (r.verdict||'').toUpperCase() + '</div></div></div></div><div class="rbot"><div class="rintel">' + esc(r.verdictReason||r.intelligence||'') + '</div><button class="rbuy" onclick="logResult(this)">Buy + Log</button></div></div>';
+  });
+  el.innerHTML = html + '<div style="height:16px;"></div>';
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const el = document.getElementById('histContent');
+  if (!history.length) { el.innerHTML = '<div class="empty"><div class="ei">◷</div><div class="et">No History Yet</div><div class="es">Every scan and search appears here.</div></div>'; return; }
+  const groups = {};
+  history.forEach(h => { if (!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
+  let html = '';
+  Object.entries(groups).forEach(([date, items]) => {
+    html += '<div class="dgrp">' + date + '</div>';
+    items.forEach(i => {
+      html += '<div class="hcard"><div class="hthumb">' + i.emoji + '</div><div class="hbody"><div class="hname">' + esc(i.name) + '</div><div class="hsub">' + esc(i.sub) + '</div><div class="hfoot"><div class="hdate">' + (i.type==='search'?'◈ Search':'◎ Scan') + '</div><div class="vb ' + i.verdict + '">' + i.verdict.toUpperCase() + '</div></div></div></div>';
+    });
+  });
+  el.innerHTML = html + '<div style="height:16px;"></div>';
+}
+function clearHistory() { history = []; renderHistory(); }
+
+// ── ALERTS ──
+function renderAlerts() {
+  const el = document.getElementById('alertsList');
+  let html = '';
+  alerts.forEach(a => {
+    html += '<div class="acard' + (a.trig?' trig':'') + '"><div class="atop"><div style="font-size:16px;flex-shrink:0;padding-top:1px;">' + (a.trig?'◉':'○') + '</div><div class="abody"><div class="aquery">' + esc(a.q) + '</div><div class="astatus">' + (a.trig?'▲ Match Found':'◌ Watching') + '</div></div><button class="adel" onclick="delAlert(' + a.id + ')">×</button></div><div class="abot">' + esc(a.detail) + '</div></div>';
+  });
+  el.innerHTML = html + '<div style="height:16px;"></div>';
+}
+function addAlert() {
+  const inp = document.getElementById('alertInp'), q = inp.value.trim();
+  if (!q) return;
+  alerts.unshift({id:Date.now(),q,trig:false,detail:'Alert active. Intelligence watching all platforms.'});
+  inp.value = '';
+  renderAlerts();
+}
+function delAlert(id) { alerts = alerts.filter(a => a.id !== id); renderAlerts(); }
+function setAI(t) { document.getElementById('alertInp').value = t; document.getElementById('alertInp').focus(); }
+
+// ── COMMUNITY ──
+function fc(f, btn) {
+  commFilter = f;
+  document.querySelectorAll('#commChips .chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+  renderCommunity();
+}
+function renderCommunity() {
+  const el = document.getElementById('commContent');
+  const filtered = commFilter === 'all' ? community : commFilter === 'Deals' ? community.filter(p => p.verdict === 'buy') : community.filter(p => p.thread === commFilter);
+  let html = filtered.map(p =>
+    '<div class="pcard"><div class="phdr"><div class="pav">' + p.av + '</div><div class="pmeta"><div class="puser">' + p.user + '</div><div class="ptime">' + p.time + '</div></div><div class="pbadge">' + p.thread + '</div></div>' +
+    '<div class="pitem"><div class="pemoji">' + p.emoji + '</div><div class="pinfo"><div class="pname">' + esc(p.name) + '</div><div class="psub">' + esc(p.sub) + '</div></div><div class="pprice">' + p.price + '</div></div>' +
+    '<div class="pvrow"><div class="vb ' + p.verdict + '">' + p.verdict.toUpperCase() + '</div><div class="pvtext">' + esc(p.vt) + '</div></div>' +
+    '<div class="pintel">' + esc(p.intel) + '</div>' +
+    '<div class="pacts"><button class="pact' + (p.liked?' liked':'') + '" onclick="lp(' + p.id + ',this)"><span>' + (p.liked?'◆':'◇') + '</span><span>' + p.likes + '</span></button><button class="pact"><span>◌</span><span>' + p.comments + ' comments</span></button><button class="pact" style="margin-left:auto;" onclick="logPost(this)"><span>+</span><span>Log</span></button></div></div>'
+  ).join('');
+  el.innerHTML = html + '<div style="height:16px;"></div>';
+}
+function lp(id, btn) {
+  const p = community.find(x => x.id === id);
+  if (!p) return;
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  renderCommunity();
+}
+function logPost(btn) {
+  btn.querySelector('span:last-child').textContent = '✓';
+  btn.classList.add('liked');
+  setTimeout(() => { btn.querySelector('span:last-child').textContent = 'Log'; btn.classList.remove('liked'); }, 2000);
+}
+function logResult(btn) {
+  btn.textContent = '✓';
+  btn.style.background = '#00994d';
+  setTimeout(() => { btn.textContent = 'Buy + Log'; btn.style.background = ''; }, 2500);
+}
+
+// ── UTILS ──
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function parseDollar(s) { return parseFloat(String(s||'0').replace(/[$,K]/g,''))||0; }
+</script>
+</body>
+</html>
